@@ -1,0 +1,150 @@
+{
+  "passed": 36,
+  "database": "embedded PostgreSQL (PGlite)",
+  "results": [
+    {
+      "name": "Unauthenticated admission rejected",
+      "status": "passed"
+    },
+    {
+      "name": "Students cannot read administrator resources",
+      "status": "passed"
+    },
+    {
+      "name": "Students cannot mutate administrator resources",
+      "status": "passed"
+    },
+    {
+      "name": "Forged session claims do not grant admin roles",
+      "status": "passed"
+    },
+    {
+      "name": "Cross-origin and missing request marker rejected",
+      "status": "passed"
+    },
+    {
+      "name": "Write actions cannot use GET",
+      "status": "passed"
+    },
+    {
+      "name": "Non-JSON mutation rejected",
+      "status": "passed"
+    },
+    {
+      "name": "Malformed and oversized bodies rejected",
+      "status": "passed"
+    },
+    {
+      "name": "CSV quotation, uniqueness, bounds and formula escaping",
+      "status": "passed"
+    },
+    {
+      "name": "Roster preview has no side effects",
+      "status": "passed"
+    },
+    {
+      "name": "Import 500 approved identities",
+      "status": "passed"
+    },
+    {
+      "name": "Identity remapping rejected",
+      "status": "passed"
+    },
+    {
+      "name": "Search and roster pagination",
+      "status": "passed"
+    },
+    {
+      "name": "Unsafe meeting destination rejected",
+      "status": "passed"
+    },
+    {
+      "name": "Create draft with eligible roster",
+      "status": "passed"
+    },
+    {
+      "name": "Drafts invisible to students",
+      "status": "passed"
+    },
+    {
+      "name": "Draft admission rejected",
+      "status": "passed"
+    },
+    {
+      "name": "Publishing requires host restrictions acknowledgement",
+      "status": "passed"
+    },
+    {
+      "name": "Editing a published event returns it to draft",
+      "status": "passed"
+    },
+    {
+      "name": "Authorized admission returns only own identity and destination",
+      "status": "passed"
+    },
+    {
+      "name": "Student dashboard excludes meeting URLs and other identities",
+      "status": "passed"
+    },
+    {
+      "name": "Unknown account denied even with correct event identifier",
+      "status": "passed"
+    },
+    {
+      "name": "Suspension takes effect on next admission request",
+      "status": "passed"
+    },
+    {
+      "name": "Ineligible roster account denied",
+      "status": "passed"
+    },
+    {
+      "name": "Attendance import merges overlapping intervals",
+      "status": "passed"
+    },
+    {
+      "name": "Student attendance isolated and repeat import idempotent",
+      "status": "passed"
+    },
+    {
+      "name": "Unknown attendance identity rejected without partial writes",
+      "status": "passed"
+    },
+    {
+      "name": "CSV exports protected and complete",
+      "status": "passed"
+    },
+    {
+      "name": "Admission rate limit enforced atomically",
+      "status": "passed"
+    },
+    {
+      "name": "SQL batch rolls back all changes on failure",
+      "status": "passed"
+    },
+    {
+      "name": "Transaction validation failure rolls back mutations",
+      "status": "passed"
+    },
+    {
+      "name": "Close stops subsequent portal admission",
+      "status": "passed"
+    },
+    {
+      "name": "Local demo cannot be enabled in production or Vercel",
+      "status": "passed"
+    },
+    {
+      "name": "Unverified Google account rejected",
+      "status": "passed"
+    },
+    {
+      "name": "Closed events cannot be edited or reopened",
+      "status": "passed"
+    },
+    {
+      "name": "Bulk import accepts 5000 approved identities",
+      "status": "passed"
+    }
+  ]
+}

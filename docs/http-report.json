@@ -1,0 +1,42 @@
+{
+  "passed": 9,
+  "mode": "Next.js development HTTP server, real NextAuth sessions and node-postgres connection to local embedded PostgreSQL",
+  "results": [
+    {
+      "name": "Login page and college logo served with security headers",
+      "status": "passed"
+    },
+    {
+      "name": "Anonymous API and spoofed hosting identity rejected",
+      "status": "passed"
+    },
+    {
+      "name": "Real session cookies distinguish student and administrator",
+      "status": "passed"
+    },
+    {
+      "name": "HTTP roster preview and confirmed import",
+      "status": "passed"
+    },
+    {
+      "name": "HTTP event creation and publishing",
+      "status": "passed"
+    },
+    {
+      "name": "Eligible student admitted, copied identifier cannot admit outsider",
+      "status": "passed"
+    },
+    {
+      "name": "HTTP attendance import and private student history",
+      "status": "passed"
+    },
+    {
+      "name": "Database health check succeeds over node-postgres",
+      "status": "passed"
+    },
+    {
+      "name": "Sign out invalidates browser session",
+      "status": "passed"
+    }
+  ]
+}

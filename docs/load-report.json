@@ -1,0 +1,11 @@
+{
+  "test": "500 simultaneous admission requests",
+  "database": "single embedded PostgreSQL instance, not a hosted production capacity test",
+  "concurrency": 500,
+  "requests": 500,
+  "failed": 0,
+  "totalMs": 959,
+  "p50Ms": 837,
+  "p95Ms": 930,
+  "p99Ms": 935
+}
