@@ -93,6 +93,11 @@ export async function studentsHandler(ctx: RequestContext) {
       db
         .prepare("UPDATE students SET blocked=? WHERE crn=?")
         .bind(body.blocked ? 1 : 0, body.crn),
+      db
+        .prepare(
+          "UPDATE auth_sessions SET revoked_at=CURRENT_TIMESTAMP WHERE email=(SELECT email FROM students WHERE crn=?) AND revoked_at IS NULL AND ?=1",
+        )
+        .bind(body.crn, body.blocked ? 1 : 0),
       auditStatement(
         db,
         user.email,

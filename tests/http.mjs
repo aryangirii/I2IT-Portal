@@ -2,11 +2,14 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { randomBytes } from "node:crypto";
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { readdir, readFile, writeFile, mkdir } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
 import { createServer } from "pglite-server";
 const pg = new PGlite();
-await pg.exec(await readFile("db/migrations/001_initial.sql", "utf8"));
+for (const migration of (await readdir("db/migrations"))
+  .filter((name) => name.endsWith(".sql"))
+  .sort())
+  await pg.exec(await readFile("db/migrations/" + migration, "utf8"));
 const wire = createServer(pg, { logLevel: 0 });
 wire.listen(0, "127.0.0.1");
 await once(wire, "listening");
@@ -160,7 +163,7 @@ try {
     },
   );
   const admin = await login("admin");
-  const student = await login("student");
+  let student = await login("student");
   const outsider = await login("outsider");
   const post = async (action, body, cookies = admin) => {
     const r = await request("/api/portal", {
@@ -238,18 +241,20 @@ try {
     },
   );
   await check(
-    "Suspension and restoration apply to an existing student session",
+    "Suspension revokes sessions; restoration requires a fresh sign-in",
     async () => {
       assert.equal(
         (await post("block", { crn: "C23222", blocked: true })).status,
         200,
       );
-      assert.equal((await post("join", { event_id: id }, student)).status, 403);
-      assert.equal((await get("dashboard", student)).data.student.blocked, 1);
+      assert.equal((await post("join", { event_id: id }, student)).status, 401);
+      assert.equal((await get("dashboard", student)).status, 401);
       assert.equal(
         (await post("block", { crn: "C23222", blocked: false })).status,
         200,
       );
+      assert.equal((await post("join", { event_id: id }, student)).status, 401);
+      student = await login("student");
       assert.equal((await post("join", { event_id: id }, student)).status, 200);
     },
   );
@@ -328,7 +333,61 @@ try {
   await check("Database health check succeeds over node-postgres", async () => {
     assert.equal((await request("/api/health")).status, 200);
   });
+  await check(
+    "Session cookies are HttpOnly and client updates cannot promote identity",
+    async () => {
+      const csrf = await request("/api/auth/csrf", { cookies: student });
+      const { csrfToken } = await csrf.json();
+      const response = await request("/api/auth/session", {
+        cookies: student,
+        body: JSON.stringify({
+          csrfToken,
+          data: { user: { email: "demo-admin@example.com" }, admin: true },
+        }),
+        headers: { "Content-Type": "application/json" },
+      });
+      assert.equal(response.status, 200);
+      assert.equal((await response.json()).user.email, "student1@example.com");
+      assert.equal(response.headers.get("Cache-Control"), "no-store");
+      const sessionCookie = response.headers
+        .getSetCookie()
+        .find((value) => value.startsWith("next-auth.session-token="));
+      assert.match(sessionCookie, /HttpOnly/i);
+      assert.match(sessionCookie, /SameSite=Lax/i);
+      assert.equal((await get("roster", student)).status, 403);
+    },
+  );
+  await check(
+    "Logout outage returns 503 without clearing the cookie; retry succeeds",
+    async () => {
+      const response = await request("/api/auth/csrf", { cookies: student });
+      const { csrfToken } = await response.json();
+      await pg.exec(
+        "ALTER TABLE auth_sessions RENAME TO auth_sessions_unavailable",
+      );
+      try {
+        const failed = await request("/api/auth/signout", {
+          cookies: student,
+          body: new URLSearchParams({
+            csrfToken,
+            json: "true",
+            callbackUrl: origin,
+          }),
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        });
+        assert.equal(failed.status, 503);
+        assert.equal(failed.headers.getSetCookie().length, 0);
+        assert.match((await failed.json()).error, /retry/);
+      } finally {
+        await pg.exec(
+          "ALTER TABLE auth_sessions_unavailable RENAME TO auth_sessions",
+        );
+      }
+      assert.equal((await get("dashboard", student)).status, 200);
+    },
+  );
   await check("Sign out invalidates browser session", async () => {
+    const copied = student.headers();
     const r = await request("/api/auth/csrf", { cookies: student });
     const { csrfToken } = await r.json();
     await request("/api/auth/signout", {
@@ -341,6 +400,14 @@ try {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
     });
     assert.equal((await get("dashboard", student)).status, 401);
+    assert.equal(
+      (
+        await request("/api/portal?action=dashboard", {
+          headers: { Cookie: copied },
+        })
+      ).status,
+      401,
+    );
   });
   await mkdir("artifacts", { recursive: true });
   await writeFile(

@@ -166,3 +166,7 @@ Before student rollout, assign a TNP owner, decide data retention, establish a s
 Database-backed rate limits are shared across application instances. Keep the connection pool small and use an upstream pooler on Vercel. Indexes support email lookup, eligibility checks and event/student attendance. Imports use bulk SQL instead of one remote round trip per student. For 2,000–5,000 portal users, benchmark the actual deployment and database plan before claiming support. One large video event also needs a provider subscription or broadcast architecture suited to that audience.
 
 For an AWS migration, the application supports a standalone Node build. Use a container service, managed PostgreSQL, secure secrets and an appropriate database proxy/pooler. Media remains with the meeting provider. Do not move the database to ephemeral server disks. See `docs/operations.md` for recovery and maintenance steps.
+
+## Security hardening
+
+Release 0.2.2 adds revocable server-checked sessions. Apply migration 002 before starting the app. See [the phase 1 rollout and remaining production gates](docs/security-phase-1.md). Run `npm run test:security`; inspect `artifacts/security-report.json` for named regression results.

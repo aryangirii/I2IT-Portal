@@ -1,0 +1,141 @@
+{
+  "release": "0.2.2",
+  "phase": "server-side session revocation",
+  "security": {
+    "passed": 8,
+    "failed": 0,
+    "results": [
+      {
+        "name": "Registry stores a hash rather than the bearer identifier",
+        "status": "passed"
+      },
+      {
+        "name": "Absolute expiry cannot be extended by refreshing the JWT",
+        "status": "passed"
+      },
+      {
+        "name": "Old, malformed, and mismatched session claims fail closed",
+        "status": "passed"
+      },
+      {
+        "name": "Client session updates cannot change email or grant admin claims",
+        "status": "passed"
+      },
+      {
+        "name": "Suspension revokes every existing session and restoration does not revive them",
+        "status": "passed"
+      },
+      {
+        "name": "Database outage cannot authorize a valid-shaped session",
+        "status": "passed"
+      },
+      {
+        "name": "Demo authentication attempts are limited across requests",
+        "status": "passed"
+      },
+      {
+        "name": "Student cannot invoke suspension or roster endpoints with forged identity fields",
+        "status": "passed"
+      }
+    ]
+  },
+  "http": {
+    "passed": 19,
+    "mode": "Next.js development HTTP server, real NextAuth sessions and node-postgres connection to local embedded PostgreSQL",
+    "results": [
+      {
+        "name": "Login page and college logo served with security headers",
+        "status": "passed"
+      },
+      {
+        "name": "Anonymous API and spoofed hosting identity rejected",
+        "status": "passed"
+      },
+      {
+        "name": "Incorrect demo password cannot create a session",
+        "status": "passed"
+      },
+      {
+        "name": "Configured Google provider is available without exposing its secret",
+        "status": "passed"
+      },
+      {
+        "name": "Real session cookies distinguish student and administrator",
+        "status": "passed"
+      },
+      {
+        "name": "HTTP roster preview and confirmed import",
+        "status": "passed"
+      },
+      {
+        "name": "HTTP event creation and publishing",
+        "status": "passed"
+      },
+      {
+        "name": "Eligible student admitted, copied identifier cannot admit outsider",
+        "status": "passed"
+      },
+      {
+        "name": "HTTP attendance import and private student history",
+        "status": "passed"
+      },
+      {
+        "name": "Suspension revokes sessions; restoration requires a fresh sign-in",
+        "status": "passed"
+      },
+      {
+        "name": "Administrator exports and access/audit records",
+        "status": "passed"
+      },
+      {
+        "name": "Editing eligibility returns event to draft and removes student admission",
+        "status": "passed"
+      },
+      {
+        "name": "Cross-origin writes rejected with a real administrator cookie",
+        "status": "passed"
+      },
+      {
+        "name": "Close and closed-event edit protection over HTTP",
+        "status": "passed"
+      },
+      {
+        "name": "Tampered session cookie rejected",
+        "status": "passed"
+      },
+      {
+        "name": "Database health check succeeds over node-postgres",
+        "status": "passed"
+      },
+      {
+        "name": "Session cookies are HttpOnly and client updates cannot promote identity",
+        "status": "passed"
+      },
+      {
+        "name": "Logout outage returns 503 without clearing the cookie; retry succeeds",
+        "status": "passed"
+      },
+      {
+        "name": "Sign out invalidates browser session",
+        "status": "passed"
+      }
+    ]
+  },
+  "integration_passed": 40,
+  "service_load": {
+    "test": "500 simultaneous admission requests",
+    "database": "single embedded PostgreSQL instance, not a hosted production capacity test",
+    "concurrency": 500,
+    "requests": 500,
+    "failed": 0,
+    "totalMs": 995,
+    "p50Ms": 868,
+    "p95Ms": 969,
+    "p99Ms": 977
+  },
+  "limitations": [
+    "Embedded PostgreSQL tests; hosted capacity and real Google OAuth not validated",
+    "No browser click verification or Docker runtime verification",
+    "Production CSP, MFA, trusted ingress throttling, operational monitoring and backups remain release gates"
+  ]
+}

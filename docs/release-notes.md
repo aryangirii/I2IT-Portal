@@ -1,3 +1,13 @@
+# Release 0.2.2 — security phase 1
+
+- Added server-checked, revocable sessions with absolute two-hour expiry.
+- Logout invalidates copied cookies. Failed revocation returns 503 for retry.
+- Student suspension revokes active sessions; restoration requires a new login.
+- Added development demo login throttling, migration-aware health checks, and no-store auth responses.
+- Added dedicated security tests and CI coverage, including HTTP cookie replay and session tampering.
+
+Apply migration 002 before starting this version. Existing sessions require a fresh login. See [security-phase-1.md](security-phase-1.md) for rollout steps, test boundaries and remaining production gates.
+
 # Release 0.2.1
 
 - Added green accents, dark overview headers/workflow panels, page and card transitions, visible keyboard focus and reduced-motion support without adding animation dependencies.

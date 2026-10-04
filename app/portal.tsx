@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import { signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { getCsrfToken } from "next-auth/react";
 import StudentProfile from "@/components/portal/student-profile";
 import StudentOverview from "@/components/portal/student-overview";
 import Image from "next/image";
@@ -65,6 +66,7 @@ const menu = [
   { id: "setup", label: "Access & setup", icon: ShieldCheck },
 ] as const;
 export default function Portal() {
+  const router = useRouter();
   const [dashboard, setDashboard] = useState<Dashboard | null>(null),
     [section, setSection] = useState<Section>("overview"),
     [error, setError] = useState(""),
@@ -77,7 +79,31 @@ export default function Portal() {
       url: string;
       email: string;
     } | null>(null),
-    [joining, setJoining] = useState(false);
+    [joining, setJoining] = useState(false),
+    [signingOut, setSigningOut] = useState(false);
+  async function logout() {
+    setSigningOut(true);
+    try {
+      const csrfToken = await getCsrfToken();
+      if (!csrfToken)
+        throw new Error("Sign out could not be completed. Please retry.");
+      const response = await fetch("/api/auth/signout", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          csrfToken,
+          json: "true",
+          callbackUrl: window.location.origin + "/",
+        }),
+      });
+      if (!response.ok)
+        throw new Error("Sign out could not be completed. Please retry.");
+      router.refresh();
+    } catch {
+      setError("Sign out could not be completed. Please retry.");
+      setSigningOut(false);
+    }
+  }
   const refresh = useCallback(async () => {
     setRefreshing(true);
     setError("");
@@ -180,10 +206,11 @@ export default function Portal() {
           </div>
           <button
             className="signout"
-            onClick={() => void signOut({ callbackUrl: "/" })}
+            disabled={signingOut}
+            onClick={() => void logout()}
           >
             <LogOut size={16} />
-            Sign out
+            {signingOut ? "Signing out…" : "Sign out"}
           </button>
         </SidebarFooter>
       </Sidebar>

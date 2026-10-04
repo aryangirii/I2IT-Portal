@@ -1,12 +1,15 @@
 import { PGlite } from "@electric-sql/pglite";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { SqlDatabase } from "../lib/db/database";
 import { portalRequest } from "../lib/http/portal";
 import { HttpError } from "../lib/server";
 import { toCSV } from "../lib/csv";
 export async function fixture(size = 500) {
   const pg = new PGlite();
-  await pg.exec(await readFile("db/migrations/001_initial.sql", "utf8"));
+  for (const migration of (await readdir("db/migrations"))
+    .filter((name) => name.endsWith(".sql"))
+    .sort())
+    await pg.exec(await readFile("db/migrations/" + migration, "utf8"));
   const executor = {
     async query(sql: string, values?: unknown[]) {
       const result = await pg.query<Record<string, unknown>>(sql, values);

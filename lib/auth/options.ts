@@ -3,7 +3,18 @@ import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { timingSafeEqual } from "node:crypto";
 import { demoEnabled } from "@/lib/config";
-export function authOptions(): NextAuthOptions {
+import { database } from "@/lib/db/postgres";
+import type { Database } from "@/lib/db/database";
+import {
+  createSession,
+  sessionIdentity,
+  revokeSession,
+  SESSION_SECONDS,
+} from "./registry";
+import { demoAttemptAllowed } from "./throttle";
+export function authOptions(
+  getDatabase: () => Database = database,
+): NextAuthOptions {
   const providers: NextAuthOptions["providers"] = [];
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)
     providers.push(
@@ -23,6 +34,8 @@ export function authOptions(): NextAuthOptions {
         credentials: { role: { type: "text" }, password: { type: "password" } },
         async authorize(credentials) {
           if (!demoEnabled() || !credentials?.password) return null;
+          if (!(await demoAttemptAllowed(getDatabase()))) return null;
+          if (credentials.password.length > 1024) return null;
           const expected = Buffer.from(process.env.LOCAL_DEMO_PASSWORD ?? "");
           const actual = Buffer.from(credentials.password);
           if (
@@ -56,7 +69,7 @@ export function authOptions(): NextAuthOptions {
   return {
     providers,
     secret: process.env.NEXTAUTH_SECRET,
-    session: { strategy: "jwt", maxAge: 2 * 60 * 60 },
+    session: { strategy: "jwt", maxAge: SESSION_SECONDS },
     pages: { signIn: "/" },
     callbacks: {
       async signIn({ account, profile }) {
@@ -70,15 +83,30 @@ export function authOptions(): NextAuthOptions {
         if (user) {
           token.email = user.email?.toLowerCase();
           token.name = user.name;
+          if (!token.email) throw new Error("Missing authenticated identity");
+          token.sessionId = await createSession(getDatabase(), token.email);
         }
         return token;
       },
       async session({ session, token }) {
-        if (session.user) {
-          session.user.email = String(token.email ?? "");
-          session.user.name = String(token.name ?? "Student");
-        }
+        const identity = await sessionIdentity(
+          getDatabase(),
+          token.sessionId,
+          token.email,
+        );
+        if (!identity) return { expires: new Date(0).toISOString() };
+        session.expires = new Date(identity.expires_at).toISOString();
+        session.user = {
+          email: identity.email,
+          name: String(token.name ?? "Student"),
+        };
         return session;
+      },
+    },
+    events: {
+      async signOut(message) {
+        if ("token" in message)
+          await revokeSession(getDatabase(), message.token?.sessionId);
       },
     },
     logger: {
