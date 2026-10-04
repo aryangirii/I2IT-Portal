@@ -21,8 +21,8 @@ const env = {
   LOCAL_DEMO_ENABLED: "true",
   LOCAL_DEMO_PASSWORD: "local-http-test-only-2026",
   TNP_ADMIN_EMAILS: "admin@example.com",
-  GOOGLE_CLIENT_ID: "",
-  GOOGLE_CLIENT_SECRET: "",
+  GOOGLE_CLIENT_ID: "local-oauth-initiation-test.apps.googleusercontent.com",
+  GOOGLE_CLIENT_SECRET: "local-oauth-test-not-real",
   NODE_ENV: "development",
 };
 delete env.VERCEL;
@@ -77,7 +77,7 @@ async function request(
   cookies?.save(response);
   return response;
 }
-async function login(role) {
+async function login(role, password = env.LOCAL_DEMO_PASSWORD) {
   const cookies = jar();
   const csrf = await request("/api/auth/csrf", { cookies });
   const { csrfToken } = await csrf.json();
@@ -86,13 +86,16 @@ async function login(role) {
     body: new URLSearchParams({
       csrfToken,
       role,
-      password: env.LOCAL_DEMO_PASSWORD,
+      password,
       json: "true",
       callbackUrl: origin,
     }),
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
   });
-  assert.equal(response.status, 200);
+  assert.equal(
+    response.status,
+    password === env.LOCAL_DEMO_PASSWORD ? 200 : 401,
+  );
   return cookies;
 }
 try {
@@ -132,6 +135,28 @@ try {
         ).status,
         401,
       );
+    },
+  );
+  await check("Incorrect demo password cannot create a session", async () => {
+    const bad = await login("admin", "incorrect-password");
+    assert.equal(
+      (await request("/api/portal?action=dashboard", { cookies: bad })).status,
+      401,
+    );
+  });
+  await check(
+    "Configured Google provider is available without exposing its secret",
+    async () => {
+      const response = await request("/api/auth/providers");
+      assert.equal(response.status, 200);
+      const text = await response.text();
+      const providers = JSON.parse(text);
+      assert.equal(providers.google.type, "oauth");
+      assert.equal(
+        providers.google.callbackUrl,
+        origin + "/api/auth/callback/google",
+      );
+      assert.ok(!text.includes(env.GOOGLE_CLIENT_SECRET));
     },
   );
   const admin = await login("admin");
@@ -212,6 +237,94 @@ try {
       assert.equal((await get("attendance", outsider)).data.length, 0);
     },
   );
+  await check(
+    "Suspension and restoration apply to an existing student session",
+    async () => {
+      assert.equal(
+        (await post("block", { crn: "C23222", blocked: true })).status,
+        200,
+      );
+      assert.equal((await post("join", { event_id: id }, student)).status, 403);
+      assert.equal((await get("dashboard", student)).data.student.blocked, 1);
+      assert.equal(
+        (await post("block", { crn: "C23222", blocked: false })).status,
+        200,
+      );
+      assert.equal((await post("join", { event_id: id }, student)).status, 200);
+    },
+  );
+  await check("Administrator exports and access/audit records", async () => {
+    for (const type of ["invites", "attendance"]) {
+      const r = await request(
+        `/api/portal?action=export&type=${type}&id=${id}`,
+        { cookies: admin },
+      );
+      assert.equal(r.status, 200);
+      assert.match(await r.text(), /student1@example.com/);
+      assert.equal(
+        (
+          await request(`/api/portal?action=export&type=${type}&id=${id}`, {
+            cookies: student,
+          })
+        ).status,
+        403,
+      );
+    }
+    const detail = await get("event&id=" + id);
+    assert.ok(detail.data.access.some((row) => row.decision === "denied"));
+    assert.ok((await get("audit")).data.length > 0);
+  });
+  await check(
+    "Editing eligibility returns event to draft and removes student admission",
+    async () => {
+      const updated = await post("update_event", {
+        event_id: id,
+        title: "Edited HTTP talk",
+        company: "Sample Company",
+        starts_at: start,
+        ends_at: end,
+        meeting_url: "https://meet.google.com/abc-defg-hij",
+        crns: ["C23223"],
+      });
+      assert.equal(updated.status, 200);
+      assert.equal((await get("dashboard", student)).data.events.length, 0);
+      assert.equal((await post("join", { event_id: id }, student)).status, 403);
+      assert.equal(
+        (await post("publish", { event_id: id, confirm_controls: true }))
+          .status,
+        200,
+      );
+      assert.equal((await post("join", { event_id: id }, student)).status, 403);
+    },
+  );
+  await check(
+    "Cross-origin writes rejected with a real administrator cookie",
+    async () => {
+      const r = await request("/api/portal", {
+        cookies: admin,
+        body: JSON.stringify({ action: "close", event_id: id }),
+        headers: {
+          "Content-Type": "application/json",
+          Origin: "https://untrusted.example",
+          "X-Portal-Request": "1",
+        },
+      });
+      assert.equal(r.status, 403);
+    },
+  );
+  await check("Close and closed-event edit protection over HTTP", async () => {
+    assert.equal((await post("close", { event_id: id })).status, 200);
+    assert.equal(
+      (await post("publish", { event_id: id, confirm_controls: true })).status,
+      409,
+    );
+  });
+  await check("Tampered session cookie rejected", async () => {
+    const r = await request("/api/portal?action=dashboard", {
+      headers: { Cookie: "next-auth.session-token=invalid-token" },
+    });
+    assert.equal(r.status, 401);
+  });
   await check("Database health check succeeds over node-postgres", async () => {
     assert.equal((await request("/api/health")).status, 200);
   });

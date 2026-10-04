@@ -1,5 +1,5 @@
 {
-  "passed": 9,
+  "passed": 17,
   "mode": "Next.js development HTTP server, real NextAuth sessions and node-postgres connection to local embedded PostgreSQL",
   "results": [
     {
@@ -8,6 +8,14 @@
     },
     {
       "name": "Anonymous API and spoofed hosting identity rejected",
+      "status": "passed"
+    },
+    {
+      "name": "Incorrect demo password cannot create a session",
+      "status": "passed"
+    },
+    {
+      "name": "Configured Google provider is available without exposing its secret",
       "status": "passed"
     },
     {
@@ -28,6 +36,30 @@
     },
     {
       "name": "HTTP attendance import and private student history",
+      "status": "passed"
+    },
+    {
+      "name": "Suspension and restoration apply to an existing student session",
+      "status": "passed"
+    },
+    {
+      "name": "Administrator exports and access/audit records",
+      "status": "passed"
+    },
+    {
+      "name": "Editing eligibility returns event to draft and removes student admission",
+      "status": "passed"
+    },
+    {
+      "name": "Cross-origin writes rejected with a real administrator cookie",
+      "status": "passed"
+    },
+    {
+      "name": "Close and closed-event edit protection over HTTP",
+      "status": "passed"
+    },
+    {
+      "name": "Tampered session cookie rejected",
       "status": "passed"
     },
     {

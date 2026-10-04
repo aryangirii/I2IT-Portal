@@ -376,6 +376,12 @@ export default function EventDetail({
         existing={data}
       />
       <ImportDialog
+        key={String(importing)}
+        attendanceTemplate={{
+          email: data.students[0]?.email ?? "student@example.com",
+          joinedAt: e.starts_at,
+          leftAt: e.ends_at,
+        }}
         open={importing}
         onClose={() => setImporting(false)}
         eventId={id}

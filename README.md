@@ -2,6 +2,10 @@
 
 A placement-event portal with separate student and TNP administrator workspaces. This standalone version runs with standard Next.js and PostgreSQL, locally or on Vercel. It does not depend on ChatGPT hosting or Cloudflare D1.
 
+Release 0.2.1 adds dark overview headers, green accents, reduced-motion-aware transitions, current-section refresh, clearer authentication errors, and event-specific attendance templates. See [Google setup and acceptance testing](docs/google-and-acceptance-testing.md) for upgrade steps and the full two-workspace checklist.
+
+The local Docker database now uses host port **5433** to avoid a common conflict with an existing PostgreSQL installation. Keep your `.env.local` database URL consistent with `docker-compose.yml`.
+
 ## What works
 
 - Google sign-in with verified email, encrypted session cookies and server-controlled administrator access.
@@ -29,7 +33,7 @@ Install Node.js 22.13 or later and Docker Desktop with Linux containers enabled.
 npm ci
 Copy-Item .env.example .env.local
 node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
-docker compose up -d
+docker compose up -d --wait
 ```
 
 Paste the generated secret into `NEXTAUTH_SECRET` in `.env.local`. Choose one authentication setup below, then run:

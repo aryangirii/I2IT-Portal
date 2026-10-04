@@ -28,11 +28,13 @@ export function ImportDialog({
   onClose,
   eventId,
   onDone,
+  attendanceTemplate,
 }: {
   open: boolean;
   onClose: () => void;
   eventId?: string;
   onDone: () => void;
+  attendanceTemplate?: { email: string; joinedAt: string; leftAt: string };
 }) {
   const [csv, setCsv] = useState(""),
     [fileName, setFileName] = useState(""),
@@ -127,7 +129,7 @@ export function ImportDialog({
                   ? "attendance-template.csv"
                   : "student-roster-template.csv",
                 attendance
-                  ? "email,joined_at,left_at\nstudent@example.com,2026-10-04T10:00:00+05:30,2026-10-04T11:00:00+05:30\n"
+                  ? `email,joined_at,left_at\n${attendanceTemplate?.email ?? "student@example.com"},${attendanceTemplate?.joinedAt ?? "2026-10-04T10:00:00+05:30"},${attendanceTemplate?.leftAt ?? "2026-10-04T11:00:00+05:30"}\n`
                   : "crn,name,email,department,batch\nC23222,Sample Student,student@example.com,Computer Engineering,2027\n",
               )
             }

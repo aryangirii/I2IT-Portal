@@ -2,10 +2,18 @@
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-export function SignIn({ google, demo }: { google: boolean; demo: boolean }) {
+export function SignIn({
+  google,
+  demo,
+  initialError = "",
+}: {
+  google: boolean;
+  demo: boolean;
+  initialError?: string;
+}) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(initialError);
   async function login(role: string, password: string) {
     setBusy(true);
     setError("");
@@ -30,9 +38,15 @@ export function SignIn({ google, demo }: { google: boolean; demo: boolean }) {
         <button
           className="primary-link"
           disabled={busy}
-          onClick={() => {
+          onClick={async () => {
             setBusy(true);
-            void signIn("google", { callbackUrl: "/" });
+            setError("");
+            try {
+              await signIn("google", { callbackUrl: "/" });
+            } catch {
+              setError("Unable to reach Google sign-in. Please retry.");
+              setBusy(false);
+            }
           }}
         >
           Continue with Google

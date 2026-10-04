@@ -15,7 +15,7 @@ import {
   type AuditRecord,
 } from "@/lib/portal-client";
 import { Activity, Blank, Loading } from "./shared";
-export function Attendance() {
+export function Attendance({ admin }: { admin: boolean }) {
   const [rows, setRows] = useState<AttendanceRecord[] | null>(null),
     [error, setError] = useState("");
   useEffect(() => {
@@ -37,8 +37,9 @@ export function Attendance() {
         <div>
           <h1>Attendance records</h1>
           <p>
-            Latest 100 imported records. Open an event for its complete report
-            and CSV export.
+            {admin
+              ? "Latest 100 imported records. Open an event for its complete report and CSV export."
+              : "Your latest 100 participation records, imported by TNP from meeting reports."}
           </p>
         </div>
       </div>

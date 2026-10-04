@@ -4,8 +4,8 @@
   "concurrency": 500,
   "requests": 500,
   "failed": 0,
-  "totalMs": 959,
-  "p50Ms": 837,
-  "p95Ms": 930,
-  "p99Ms": 935
+  "totalMs": 1126,
+  "p50Ms": 979,
+  "p95Ms": 1093,
+  "p99Ms": 1107
 }

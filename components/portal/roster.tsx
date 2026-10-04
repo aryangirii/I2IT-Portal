@@ -202,6 +202,7 @@ export default function Roster({ onRefresh }: { onRefresh: () => void }) {
         )}
       </div>
       <ImportDialog
+        key={String(importing)}
         open={importing}
         onClose={() => setImporting(false)}
         onDone={refresh}

@@ -1,0 +1,147 @@
+/* Product accents stay separate from shared primitives and form layouts. */
+:root {
+  --portal-ink: #12211b;
+  --portal-bright: #25d366;
+}
+.portal-main {
+  animation: workspace-enter 240ms ease-out both;
+}
+.overview-heading {
+  background: var(--portal-ink);
+  border: 1px solid #263d30;
+  border-radius: 12px;
+  padding: 28px;
+  color: #fff;
+  box-shadow: 0 8px 24px #12211b0a;
+}
+.overview-heading .eyebrow {
+  color: #68e49a;
+}
+.overview-heading p:not(.eyebrow) {
+  color: #c3d3c9;
+}
+.overview-heading [data-slot="button"] {
+  background: #25d366;
+  color: #092415;
+  border: 1px solid #25d366;
+}
+.overview-heading [data-slot="button"]:hover {
+  background: #68e49a;
+}
+.metrics > div {
+  box-shadow: 0 2px 6px #12211b04;
+  transition:
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+  animation: card-enter 320ms ease-out both;
+}
+.metrics > div:nth-child(2) {
+  animation-delay: 45ms;
+}
+.metrics > div:nth-child(3) {
+  animation-delay: 90ms;
+}
+.metrics > div:nth-child(4) {
+  animation-delay: 135ms;
+}
+.metrics > div:hover {
+  border-color: #9fcbb0;
+  box-shadow: 0 6px 18px #12211b0c;
+}
+.metrics > div:first-child {
+  border-top: 3px solid #087c46;
+}
+.dark-panel {
+  background: #12211b;
+  border-color: #263d30;
+  color: white;
+}
+.dark-panel > svg {
+  color: #68e49a;
+}
+.dark-panel > p,
+.dark-panel dd {
+  color: #c3d3c9;
+}
+.dark-panel dl > div {
+  border-color: #314638;
+}
+.dark-panel [data-slot="button"] {
+  background: #203c2c;
+  border-color: #53715e;
+  color: white;
+}
+.dark-panel [data-slot="button"]:hover {
+  background: #2c513b;
+}
+.sidebar-pilot {
+  background: #12211b;
+  border-color: #263d30;
+  color: #83e6a7;
+}
+.sidebar-pilot span {
+  color: #c3d3c9;
+}
+[data-slot="sidebar-menu-button"],
+[data-slot="button"],
+.primary-link {
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+[data-slot="button"]:focus-visible,
+.primary-link:focus-visible,
+.signout:focus-visible {
+  outline: 2px solid #10965a;
+  outline-offset: 3px;
+}
+.signin {
+  animation: workspace-enter 320ms ease-out both;
+}
+.signin-actions form {
+  box-shadow: 0 8px 26px #12211b08;
+  border-top: 3px solid #087c46;
+}
+[data-slot="dialog-content"],
+[data-slot="alert-dialog-content"] {
+  max-height: 90dvh;
+  overflow-y: auto;
+}
+@keyframes workspace-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (max-width: 640px) {
+  .overview-heading {
+    padding: 22px;
+  }
+  .overview-heading > [data-slot="button"] {
+    width: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

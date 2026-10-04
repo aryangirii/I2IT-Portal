@@ -69,6 +69,7 @@ export default function Portal() {
     [section, setSection] = useState<Section>("overview"),
     [error, setError] = useState(""),
     [refreshing, setRefreshing] = useState(true),
+    [viewRevision, setViewRevision] = useState(0),
     [creating, setCreating] = useState(false),
     [importing, setImporting] = useState(false),
     [eventId, setEventId] = useState<string | null>(null),
@@ -205,7 +206,10 @@ export default function Portal() {
               size="icon"
               aria-label="Refresh dashboard"
               disabled={refreshing}
-              onClick={() => void refresh()}
+              onClick={() => {
+                setViewRevision((value) => value + 1);
+                void refresh();
+              }}
             >
               <RefreshCw
                 size={17}
@@ -214,7 +218,7 @@ export default function Portal() {
             </Button>
           </div>
         </header>
-        <main className="portal-main">
+        <main className="portal-main" key={`${section}:${eventId ?? "list"}`}>
           {error && (
             <div className="error-box" role="alert">
               {error}
@@ -230,6 +234,7 @@ export default function Portal() {
             ) : null
           ) : eventId && admin ? (
             <EventDetail
+              key={`${eventId}:${viewRevision}`}
               id={eventId}
               onBack={() => {
                 setEventId(null);
@@ -238,18 +243,24 @@ export default function Portal() {
               onRefresh={() => void refresh()}
             />
           ) : section === "students" && admin ? (
-            <Roster onRefresh={() => void refresh()} />
+            <Roster key={viewRevision} onRefresh={() => void refresh()} />
           ) : section === "profile" && !admin ? (
             <StudentProfile dashboard={dashboard} />
           ) : section === "attendance" ? (
-            <Attendance />
+            <Attendance key={viewRevision} admin={admin} />
           ) : section === "audit" && admin ? (
-            <Audit />
+            <Audit key={viewRevision} />
           ) : section === "setup" && admin ? (
             <AccessSetup />
           ) : (
             <>
-              <div className="section-heading">
+              <div
+                className={
+                  section === "overview"
+                    ? "section-heading overview-heading"
+                    : "section-heading"
+                }
+              >
                 <div>
                   <p className="eyebrow">
                     {admin
@@ -399,7 +410,7 @@ export default function Portal() {
                     </div>
                     <Activity rows={dashboard.audit ?? []} />
                   </section>
-                  <section className="panel padded workflow-card">
+                  <section className="panel padded workflow-card dark-panel">
                     <FileCheck2 size={24} />
                     <h2>One identity, clear records</h2>
                     <p>
@@ -445,6 +456,7 @@ export default function Portal() {
         />
       )}
       <ImportDialog
+        key={String(importing)}
         open={importing}
         onClose={() => setImporting(false)}
         onDone={() => void refresh()}

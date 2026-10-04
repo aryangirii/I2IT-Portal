@@ -5,6 +5,7 @@ import { parseCSV, toCSV } from "../lib/csv";
 import { validateRoster } from "../lib/validation";
 import { demoEnabled } from "../lib/config";
 import { authOptions } from "../lib/auth/options";
+import { signInError } from "../lib/auth/errors";
 const f = await fixture();
 const results: { name: string; status: string }[] = [];
 async function test(name: string, fn: () => Promise<void> | void) {
@@ -251,6 +252,42 @@ try {
     assert.equal(r.data.attendance_recorded, false);
     assert.equal(r.data.url, f.event.meeting_url);
   });
+  await test("Admission enforces future and ended meeting windows", async () => {
+    const stamp = (offset: number) =>
+      new Date(Date.now() + offset * 60000).toISOString();
+    for (const [starts, ends] of [
+      [60, 120],
+      [-120, -60],
+    ]) {
+      await f.db
+        .prepare("UPDATE events SET starts_at=?,ends_at=? WHERE id=?")
+        .bind(stamp(starts), stamp(ends), id)
+        .run();
+      assert.equal(
+        (
+          await f.request("join", {
+            email: f.seed[3].email,
+            body: { event_id: id },
+          })
+        ).status,
+        403,
+      );
+    }
+    await f.db
+      .prepare("UPDATE events SET starts_at=?,ends_at=? WHERE id=?")
+      .bind(f.event.starts_at, f.event.ends_at, id)
+      .run();
+  });
+  await test("Successful admission does not create attendance", async () => {
+    assert.equal(
+      (
+        await f.db
+          .prepare("SELECT COUNT(*) n FROM attendance")
+          .first<{ n: number }>()
+      )?.n,
+      0,
+    );
+  });
   await test("Student dashboard excludes meeting URLs and other identities", async () => {
     const r = await f.json("dashboard", { email: f.seed[0].email });
     assert.equal(r.data.student.crn, f.seed[0].crn);
@@ -316,6 +353,21 @@ try {
     );
   });
   await test("Student attendance isolated and repeat import idempotent", async () => {
+    const start = f.event.starts_at;
+    const left = new Date(Date.parse(start) + 20 * 60000).toISOString();
+    const csv = `email,joined_at,left_at\n${f.seed[0].email},${start},${left}`;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      assert.equal(
+        (
+          await f.json("import_attendance", {
+            body: { event_id: id, csv, confirm: true },
+          })
+        ).status,
+        200,
+      );
+    }
+    const rows = (await f.json("attendance", { email: f.seed[0].email })).data;
+    assert.equal(rows[0].minutes, 20);
     assert.equal(
       (await f.json("attendance", { email: f.seed[0].email })).data.length,
       1,
@@ -460,6 +512,39 @@ try {
         user: {} as never,
       }),
       true,
+    );
+  });
+  await test("Google verification requires literal true and a trusted provider", async () => {
+    const signIn = authOptions().callbacks!.signIn!;
+    for (const profile of [
+      {},
+      { email_verified: "true" },
+      { email_verified: 1 },
+    ])
+      assert.equal(
+        await signIn({
+          account: { provider: "google" } as never,
+          profile: profile as never,
+          user: {} as never,
+        }),
+        false,
+      );
+    assert.equal(
+      await signIn({
+        account: { provider: "untrusted" } as never,
+        profile: { email_verified: true } as never,
+        user: {} as never,
+      }),
+      false,
+    );
+  });
+  await test("Sign-in messages never reflect arbitrary provider query strings", () => {
+    assert.equal(signInError(undefined), "");
+    assert.match(signInError("AccessDenied"), /verified Google/);
+    assert.ok(
+      !signInError("<script>private-details</script>").includes(
+        "private-details",
+      ),
     );
   });
   await test("Closed events cannot be edited or reopened", async () => {

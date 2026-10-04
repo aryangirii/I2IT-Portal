@@ -1,5 +1,5 @@
 {
-  "passed": 36,
+  "passed": 40,
   "database": "embedded PostgreSQL (PGlite)",
   "results": [
     {
@@ -83,6 +83,14 @@
       "status": "passed"
     },
     {
+      "name": "Admission enforces future and ended meeting windows",
+      "status": "passed"
+    },
+    {
+      "name": "Successful admission does not create attendance",
+      "status": "passed"
+    },
+    {
       "name": "Student dashboard excludes meeting URLs and other identities",
       "status": "passed"
     },
@@ -136,6 +144,14 @@
     },
     {
       "name": "Unverified Google account rejected",
+      "status": "passed"
+    },
+    {
+      "name": "Google verification requires literal true and a trusted provider",
+      "status": "passed"
+    },
+    {
+      "name": "Sign-in messages never reflect arbitrary provider query strings",
       "status": "passed"
     },
     {
