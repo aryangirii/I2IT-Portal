@@ -1,9 +1,45 @@
 import { HttpError, now, auditStatement } from "@/lib/server";
 import { parseCSV } from "@/lib/csv";
-import { validateRoster } from "@/lib/validation";
+import { studentSchema, validateRoster } from "@/lib/validation";
 import { reply, type RequestContext } from "@/lib/services/context";
 export async function studentsHandler(ctx: RequestContext) {
   const { user, db, url, body, action } = ctx;
+  if (action === "create_student") {
+    if (Object.keys(body).some((key) => !["action", "student"].includes(key)))
+      throw new HttpError(400, "Invalid request fields.");
+    const result = studentSchema.strict().safeParse(body.student);
+    if (!result.success)
+      throw new HttpError(
+        400,
+        "Enter a valid CRN, name, email, department and batch.",
+      );
+    const student = result.data;
+    await db.batch(
+      [
+        db
+          .prepare(
+            "INSERT INTO students(crn,name,email,department,batch,blocked,created_at) VALUES(?,?,?,?,?,0,?) ON CONFLICT DO NOTHING RETURNING crn",
+          )
+          .bind(
+            student.crn,
+            student.name,
+            student.email,
+            student.department,
+            student.batch,
+            now(),
+          ),
+        auditStatement(db, user.email, "Student added", student.crn),
+      ],
+      (results) => {
+        if (results[0].results.length !== 1)
+          throw new HttpError(
+            409,
+            "This CRN or email already exists. Review the student roster before adding another record.",
+          );
+      },
+    );
+    return reply({ student }, 201);
+  }
   if (action === "roster") {
     const page = Math.max(
       1,

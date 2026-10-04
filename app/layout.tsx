@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./portal-polish.css";
+import "./welcome.css";
 export const metadata: Metadata = {
   title: "Placement Desk",
   description:

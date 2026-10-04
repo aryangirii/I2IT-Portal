@@ -1,5 +1,6 @@
 "use client";
 import { signIn } from "next-auth/react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 export function SignIn({
@@ -24,7 +25,8 @@ export function SignIn({
         redirect: false,
         callbackUrl: "/",
       });
-      if (result?.error) setError("Check your local demonstration password.");
+      if (!result?.ok || result.error)
+        setError("Check your local demonstration password.");
       else router.refresh();
     } catch {
       setError("Unable to sign in. Please retry.");
@@ -36,7 +38,7 @@ export function SignIn({
     <div className="signin-actions">
       {google && (
         <button
-          className="primary-link"
+          className="primary-link google-signin"
           disabled={busy}
           onClick={async () => {
             setBusy(true);
@@ -49,7 +51,11 @@ export function SignIn({
             }
           }}
         >
-          Continue with Google
+          <span className="google-letter" aria-hidden="true">
+            G
+          </span>
+          {busy ? "Connecting…" : "Continue with Google"}
+          <ArrowRight size={18} aria-hidden="true" />
         </button>
       )}
       {!google && !demo && (
@@ -59,32 +65,45 @@ export function SignIn({
         </p>
       )}
       {demo && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            const data = new FormData(e.currentTarget);
-            void login(String(data.get("role")), String(data.get("password")));
-          }}
-        >
-          <p className="note">Local demonstration accounts</p>
-          <label htmlFor="demo-role">Workspace</label>
-          <select id="demo-role" name="role">
-            <option value="student">Approved student</option>
-            <option value="admin">TNP administrator</option>
-            <option value="outsider">Unregistered student</option>
-          </select>
-          <label htmlFor="demo-password">Demonstration password</label>
-          <input
-            id="demo-password"
-            name="password"
-            type="password"
-            required
-            autoComplete="current-password"
-          />
-          <button className="primary-link" disabled={busy}>
-            {busy ? "Signing in…" : "Open workspace"}
-          </button>
-        </form>
+        <details className="demo-access" open={!google || undefined}>
+          <summary>
+            Local development accounts
+            <ChevronDown size={16} aria-hidden="true" />
+          </summary>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const data = new FormData(e.currentTarget);
+              void login(
+                String(data.get("role")),
+                String(data.get("password")),
+              );
+            }}
+          >
+            <p className="note">
+              For local testing only. Use Google above for your real student
+              account.
+            </p>
+            <label htmlFor="demo-role">Workspace</label>
+            <select id="demo-role" name="role" disabled={busy}>
+              <option value="student">Approved student</option>
+              <option value="admin">TNP administrator</option>
+              <option value="outsider">Unregistered student</option>
+            </select>
+            <label htmlFor="demo-password">Demonstration password</label>
+            <input
+              id="demo-password"
+              name="password"
+              type="password"
+              required
+              autoComplete="current-password"
+              disabled={busy}
+            />
+            <button className="primary-link" disabled={busy}>
+              {busy ? "Signing in…" : "Open workspace"}
+            </button>
+          </form>
+        </details>
       )}
       {error && (
         <p role="alert" className="error-box">

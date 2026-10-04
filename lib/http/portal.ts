@@ -11,6 +11,7 @@ import { eventsHandler } from "@/lib/services/events";
 import { attendanceHandler } from "@/lib/services/attendance";
 import { studentAttendance } from "@/lib/services/student";
 import { z } from "zod";
+import { studentSchema } from "@/lib/validation";
 import type { Actor } from "@/lib/auth/session";
 import type { Database } from "@/lib/db/database";
 export interface Dependencies {
@@ -27,6 +28,7 @@ const readActions = new Set([
   "export",
 ]);
 const writeActions = new Set([
+  "create_student",
   "join",
   "import_roster",
   "create_event",
@@ -39,6 +41,7 @@ const writeActions = new Set([
 const bodySchema = z
   .object({
     action: z.string(),
+    student: studentSchema.strict().optional(),
     csv: z.string().max(1000000).optional(),
     confirm: z.boolean().optional(),
     event_id: z.string().max(100).optional(),

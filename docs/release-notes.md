@@ -1,3 +1,12 @@
+# Release 0.2.3 — manual student entry and sign-in refresh
+
+- Added administrator-only Add student alongside CSV import with shared identity validation and transactional auditing.
+- Added student creation regression tests and real-session HTTP coverage.
+- Redesigned sign-in into college/placement information and login sections, with accessible motion, responsive layout and historical company names sourced from college placement records.
+- No new dependencies or database migration. Preserve .env.local.
+
+See [release-0.2.3.md](release-0.2.3.md) for upgrade steps and browser acceptance checks.
+
 # Release 0.2.2 — security phase 1
 
 - Added server-checked, revocable sessions with absolute two-hour expiry.

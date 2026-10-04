@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Search, Upload } from "lucide-react";
+import { Search, Upload, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/pagination";
 import { api, type Student } from "@/lib/portal-client";
 import { Blank, Loading } from "./shared";
+import { StudentCreate } from "./student-create";
 import { ImportDialog } from "./import-dialog";
 interface RosterPage {
   rows: Student[];
@@ -40,6 +41,8 @@ export default function Roster({ onRefresh }: { onRefresh: () => void }) {
     [page, setPage] = useState(1),
     [revision, setRevision] = useState(0),
     [importing, setImporting] = useState(false),
+    [adding, setAdding] = useState(false),
+    [success, setSuccess] = useState(""),
     [error, setError] = useState(""),
     [target, setTarget] = useState<Student | null>(null),
     [busy, setBusy] = useState(false);
@@ -84,11 +87,22 @@ export default function Roster({ onRefresh }: { onRefresh: () => void }) {
           <h1>Student roster</h1>
           <p>Official identities and placement-event access.</p>
         </div>
-        <Button onClick={() => setImporting(true)}>
-          <Upload size={17} />
-          Import CSV
-        </Button>
+        <div className="roster-actions">
+          <Button variant="outline" onClick={() => setImporting(true)}>
+            <Upload size={17} />
+            Import CSV
+          </Button>
+          <Button onClick={() => setAdding(true)}>
+            <UserPlus size={17} />
+            Add student
+          </Button>
+        </div>
       </div>
+      {success && (
+        <p className="roster-success" role="status">
+          {success}
+        </p>
+      )}
       <div className="panel">
         <div className="panel-toolbar">
           <div className="search-field">
@@ -118,7 +132,7 @@ export default function Roster({ onRefresh }: { onRefresh: () => void }) {
             description={
               search
                 ? "Try another name, CRN or email."
-                : "Import the official student list to get started."
+                : "Add a student manually or import the official student list."
             }
           />
         ) : (
@@ -201,6 +215,19 @@ export default function Roster({ onRefresh }: { onRefresh: () => void }) {
           </Pagination>
         )}
       </div>
+      <StudentCreate
+        key={String(adding)}
+        open={adding}
+        onClose={() => setAdding(false)}
+        onDone={() => {
+          setSuccess(
+            "Student added. Select them in an event’s eligibility list to grant meeting access.",
+          );
+          setSearch("");
+          setPage(1);
+          refresh();
+        }}
+      />
       <ImportDialog
         key={String(importing)}
         open={importing}

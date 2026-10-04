@@ -11,6 +11,13 @@ export interface Student {
 }
 export interface PortalBody {
   action?: string;
+  student?: {
+    crn: string;
+    name: string;
+    email: string;
+    department: string;
+    batch: string;
+  };
   csv?: string;
   confirm?: boolean;
   event_id?: string;

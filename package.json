@@ -1,6 +1,6 @@
 {
   "name": "i2it-placement-desk",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "private": true,
   "engines": {
     "node": ">=22.13.0"
@@ -18,7 +18,8 @@
     "check:config": "node --env-file=.env.local scripts/check-config.mjs",
     "db:seed:demo": "node --env-file=.env.local scripts/seed-demo.mjs",
     "test:http": "node tests/http.mjs",
-    "test:security": "node --import tsx tests/security.ts"
+    "test:security": "node --import tsx tests/security.ts",
+    "test:students": "node --import tsx tests/students.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

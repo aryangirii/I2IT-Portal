@@ -170,3 +170,7 @@ For an AWS migration, the application supports a standalone Node build. Use a co
 ## Security hardening
 
 Release 0.2.2 adds revocable server-checked sessions. Apply migration 002 before starting the app. See [the phase 1 rollout and remaining production gates](docs/security-phase-1.md). Run `npm run test:security`; inspect `artifacts/security-report.json` for named regression results.
+
+## Manual student entry
+
+Version 0.2.3 supports Student roster → Add student as well as CSV import. Only administrators can add identities. Use the student’s actual Google email and CRN, then assign event eligibility separately. Run `npm run test:students` and review `artifacts/students-report.json`. See [release 0.2.3](docs/release-0.2.3.md) for upgrade and browser acceptance steps.

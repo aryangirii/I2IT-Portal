@@ -119,7 +119,11 @@ try {
     async () => {
       const r = await request("/");
       assert.equal(r.status, 200);
-      assert.match(await r.text(), /Placement Desk/);
+      const html = await r.text();
+      assert.match(html, /Placement Desk/);
+      assert.match(html, /Keep learning/);
+      assert.match(html, /welcome-story/);
+      assert.match(html, /welcome-access/);
       assert.equal(r.headers.get("X-Frame-Options"), "DENY");
       assert.equal((await request("/college-logo.png")).status, 200);
     },
@@ -187,6 +191,34 @@ try {
       assert.equal((await get("dashboard", admin)).data.user.admin, true);
       assert.equal((await get("dashboard", student)).data.user.admin, false);
       assert.equal((await get("roster", student)).status, 403);
+    },
+  );
+  await check(
+    "Manual roster creation uses real admin sessions and rejects student writes",
+    async () => {
+      const entry = {
+        crn: "C99001",
+        name: "Manual HTTP Student",
+        email: "manual-http@example.com",
+        department: "Computer Engineering",
+        batch: "2027",
+      };
+      assert.equal(
+        (await post("create_student", { student: entry }, student)).status,
+        403,
+      );
+      const created = await post("create_student", { student: entry });
+      assert.equal(created.status, 201);
+      assert.deepEqual(created.data.student, entry);
+      assert.equal(
+        (await post("create_student", { student: entry })).status,
+        409,
+      );
+      assert.equal(
+        (await post("create_student", { student: { ...entry, email: "bad" } }))
+          .status,
+        400,
+      );
     },
   );
   await check("HTTP roster preview and confirmed import", async () => {
